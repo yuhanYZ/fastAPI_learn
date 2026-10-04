@@ -1,0 +1,23 @@
+# Copilot Instructions
+
+- Scope: tiny FastAPI sample; active app lives in [main01.py](main01.py#L1-L14).
+- Entrypoint: `python main01.py` uses `uvicorn.run("main01:app", host="127.0.0.1", port=8000)` in [main01.py](main01.py#L13-L14).
+- Alternative dev run: `uvicorn main01:app --host 127.0.0.1 --port 8000 --reload`.
+- Framework: FastAPI; keep to FastAPI + Uvicorn unless the user asks for more layers.
+- App instance: reuse the shared `app = FastAPI()` in [main01.py](main01.py#L5).
+- Routing: add path decorators (`@app.get`, `@app.post`, etc.) on that `app`; prefer `async def` for new handlers.
+- Response shape: return plain dicts/objects; FastAPI auto-converts to JSON like the root handler in [main01.py](main01.py#L8-L10).
+- Host/port: defaults to 127.0.0.1:8000; if you change them, keep `uvicorn.run` and CLI invocations aligned.
+- Docs: built-in Swagger UI will be at `/docs` when the server is running.
+- No persistence: there is no DB or filesystem use; avoid inventing storage without user confirmation.
+- Error handling: lean on FastAPI defaults; introduce `HTTPException` for explicit errors when needed.
+- Logging: none yet; prefer Python `logging` over `print` if adding diagnostics.
+- Config: no env/config files; keep new settings minimal and documented in code.
+- Dependencies: implicit FastAPI + Uvicorn; if adding packages, coordinate and consider adding a `requirements.txt`.
+- Module path: keep the module name `main01:app` stable so the `__main__` runner and uvicorn CLI keep working.
+- first.py is incomplete/unwired; do not depend on it unless the user directs.
+- Styling: follow PEP 8; current code uses single quotes for strings—stay consistent when touching nearby code.
+- Testing: none present; for quick checks use `requests` against the running server if you add endpoints.
+- Hot reload: prefer the uvicorn `--reload` flag during development instead of editing the `__main__` block.
+- Imports: keep FastAPI imports explicit (`from fastapi import FastAPI`); avoid wildcard imports.
+- Keep files ASCII; avoid introducing non-ASCII unless required by the user.
