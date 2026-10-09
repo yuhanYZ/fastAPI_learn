@@ -6,18 +6,59 @@ from pydantic import BaseModel, Field, field_validator
 import shutil
 from pathlib import Path
 from typing import Annotated
-from uuid import uuid4
 
-from fastapi import File, Form, Request, UploadFile
+from fastapi import Depends, File, Form, HTTPException, Request, UploadFile
 from pydantic import EmailStr
-
 
 from routers.shop import shop
 from routers.user import user
+from database import Base, engine, SessionLocal
+from sqlalchemy.orm import Session
+import schemas
+import models
+
+Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 app.include_router(shop,prefix="/shop",tags=["购物中心接口"])
 app.include_router(user,prefix="/user",tags=["用户中心接口"])
+
+#创建学生的接口
+@app.post("/students",response_model=schemas.StudentOut)
+def create_student(
+        student: schemas.StudentCreate,
+        db: Session = Depends(get_db),
+):
+    db_student = models.Student(
+        name=student.name,
+        age=student.age,
+        class_name=student.class_name,
+    )
+    db.add(db_student)
+    db.commit()
+    db.refresh(db_student)
+
+    return db_student
+
+#查询学生的接口
+@app.get("/students",response_model=list[schemas.StudentOut])
+async def get_students(db: Session = Depends(get_db)):
+    students = db.query(models.Student).all()
+    return students
+
+@app.get("/students/{student_id}",response_model=schemas.StudentOut)
+async def get_student(student_id: int, db: Session = Depends(get_db)):
+    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+
+    if student is None:
+        raise HTTPException(status_code=404, detail="student not found")
+    return student
 @app.get("/")
 async def root():
     return {"message": "Hello yuan"}
